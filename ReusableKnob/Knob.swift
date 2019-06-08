@@ -40,10 +40,12 @@ class Knob: UIControl {
 
   /** Sets the receiver’s current value, allowing you to animate the change visually. */
   func setValue(_ newValue: Float, animated: Bool = false) {
-    value = min(maximumValue, max(minimumValue, newValue))
+    value = min(maximumValue, max(minimumValue , newValue))
    
 
-    let angleRange = endAngle - startAngle
+    //let angleRange = endAngle - startAngle
+        let angleRange = endAngle - startAngle
+    
     let valueRange = maximumValue - minimumValue
     let angleValue = CGFloat(value - minimumValue) / CGFloat(valueRange) * angleRange + startAngle
     renderer.setPointerAngle(angleValue, animated: animated)
@@ -102,6 +104,7 @@ class Knob: UIControl {
 
     layer.addSublayer(renderer.trackLayer)
     layer.addSublayer(renderer.pointerLayer)
+    //layer.addSublayer(renderer.realPointerLayer)
 
     let gestureRecognizer = RotationGestureRecognizer(target: self, action: #selector(Knob.handleGesture(_:)))
     addGestureRecognizer(gestureRecognizer)
@@ -191,36 +194,67 @@ private class KnobRenderer {
     let bounds = trackLayer.bounds
     let center = CGPoint(x: bounds.midX, y: bounds.midY)
     let offset = max(pointerLength, lineWidth  / 2)
-    let radius = min(bounds.width, bounds.height) / 2 - offset
+    let radius = min(bounds.width, bounds.height) / 2 - offset * bounds.width/240
    
     
-    let changeVal = min(newPointerAngle,endAngle  )
+    var changeVal = newPointerAngle
 
 //    let startPoint = CGPoint(x: self.rectangleFrame.midX, y: self.rectangleFrame.minY);
 //    let endPoint = CGPoint(x: self.rectangleFrame.midX, y: self.rectangleFrame.maxY);
 //
    // context.drawLinearGradient(gradient!, start: startPoint, end: endPoint, options: CGGradientDrawingOptions(rawValue: 0))
     
+    print("changeVal: \(changeVal)")
+    print("angleValue: \(angleValue)")
     //context.restoreGState();
+    if changeVal > startAngle {
+     // changeVal = changeVal-1.11
+    }
     
-    let ring =  UIBezierPath(arcCenter: center, radius: radius, startAngle: startAngle, endAngle: changeVal, clockwise: true)
+    if  changeVal < 1.932  {
+      changeVal = 1.932
+    }
+    if changeVal > 7.96 {
+      changeVal = 7.96
+    }
+    
+    
+    
+    print(changeVal)
+    let ring =  UIBezierPath(arcCenter: center, radius: radius, startAngle: startAngle, endAngle: changeVal, clockwise: false)
     //pointer.move(to: CGPoint(x: bounds.width - CGFloat(pointerLength) - CGFloat(lineWidth) / 2, y: bounds.midY))
     // pointer.addLine(to: CGPoint(x: bounds.width, y: bounds.midY))
+    
     
    
     
     //self.view.layer.addSublayer(gradient)
     pointerLayer.path = ring.cgPath
-    pointerLayer.strokeColor = UIColor.orange.cgColor
-   //pointerLayer.mask =
+    pointerLayer.strokeColor = UIColor(red: 59/255, green: 56/255, blue: 77/255, alpha: 1.0).cgColor
+    
+ 
+   
+    
+    //realPointerLayer.position = CGPoint(x: bounds2.width, y: bounds2.midY)
+    
+    
+    //realPointerLayer.strokeColor = UIColor.red.cgColor
 
     if animated {
-      let midAngleValue = (max(newPointerAngle, pointerAngle) - min(newPointerAngle, pointerAngle)) / 2 + min(newPointerAngle, pointerAngle)
+    //  let midAngleValue = (max(newPointerAngle, pointerAngle) - min(newPointerAngle, pointerAngle)) / 2 + min(newPointerAngle, pointerAngle)
+      
+      let midAngleValue = (max(changeVal, startAngle) - min(changeVal, endAngle)) / 2 + min(changeVal, startAngle)
+      print("junction points are: \(midAngleValue)")
+
       let animation = CAKeyframeAnimation(keyPath: "transform.rotation.z")
-      animation.values = [startAngle,midAngleValue ]
-      animation.keyTimes = [0.0, 0.5]
+      animation.values = [startAngle, startAngle,startAngle]
+      animation.keyTimes = [0.0, 1.0, 2.0]
       animation.timingFunctions = [CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)]
       pointerLayer.add(animation, forKey: nil)
+      
+      
+      
+      
     }
 
     CATransaction.commit()
@@ -231,10 +265,14 @@ private class KnobRenderer {
   let trackLayer = CALayer()
   
   let pointerLayer = CAShapeLayer()
+    let realPointerLayer = CALayer()
 
   init() {
       trackLayer.contents = UIImage(named: "back_image")?.cgImage
+    trackLayer.masksToBounds = true
+    
     pointerLayer.fillColor = UIColor.clear.cgColor
+    realPointerLayer.contents = UIImage(named: "dot")?.cgImage
     
   }
 
@@ -263,6 +301,10 @@ private class KnobRenderer {
     pointer.addLine(to: CGPoint(x: bounds.width, y: bounds.midY))
      //pointerLayer.path = pointer.cgPath
     pointerLayer.path = ring.cgPath
+    
+    
+    
+    
   }
 
   func updateBounds(_ bounds: CGRect) {
@@ -272,6 +314,11 @@ private class KnobRenderer {
 
     pointerLayer.bounds = trackLayer.bounds
     pointerLayer.position = trackLayer.position
+    
+    realPointerLayer.bounds = pointerLayer.bounds
+    
+    
+    
     updatePointerLayerPath()
   }
 }

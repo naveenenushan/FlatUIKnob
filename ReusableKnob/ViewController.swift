@@ -38,11 +38,11 @@ class ViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    knob.lineWidth = 3.8
-    knob.startAngle = 1.91
-    knob.endAngle = 7.48
+    knob.lineWidth = 6.9
+    knob.startAngle = 1.21
+    knob.endAngle = 7.49
    
-    knob.pointerLength = 19
+    knob.pointerLength = 17
     knob.setValue(valueSlider.value)
     knob.addTarget(self, action: #selector(ViewController.handleValueChanged(_:)), for: .valueChanged)
     
@@ -68,6 +68,6 @@ class ViewController: UIViewController {
   
   private func updateLabel() {
     let valll = knob.value * 100.00
-    valueLabel.text = String(format: "%.f", valll )
+    valueLabel.text = String(format: "%.f", valll ) + "°"
   }
 }
