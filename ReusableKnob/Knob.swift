@@ -50,7 +50,35 @@ class Knob: UIControl {
     let angleValue = CGFloat(value - minimumValue) / CGFloat(valueRange) * angleRange + startAngle
     renderer.setPointerAngle(angleValue, animated: animated)
     
+    
+    
+    
+    
   }
+  
+  
+  func sample(setVal:Float) {
+    
+    let loadingProcess = LoadingProcess(minValue: Int(startAngle), maxValue: Int(setVal))
+    
+    loadingProcess.simulateLoading(toValue: 80, valueChanged: { currentValue in
+     // self.renderer.setPointerAngle(CGFloat(currentValue), animated: false)
+    })
+    
+    DispatchQueue.global(qos: .background).async {
+      print("Start loading data")
+      sleep(5)
+      print("Data loaded")
+     
+      loadingProcess.finish(valueChanged: { currentValue in
+         print(currentValue)
+         self.renderer.setPointerAngle(CGFloat(currentValue), animated: false)
+      }) { _ in
+        print("end")
+      }
+    }
+  }
+  
 
   /** Contains a Boolean value indicating whether changes
    in the sliders value generate continuous update events. */
@@ -116,9 +144,12 @@ class Knob: UIControl {
     // 2
     var boundedAngle = gesture.touchAngle
     if boundedAngle > midPointAngle {
-      boundedAngle -= 2 * CGFloat(Double.pi)
+      boundedAngle += 2 * CGFloat(Double.pi)
+      
+      // -= chnage couse we use anti clockwise
     } else if boundedAngle < (midPointAngle - 2 * CGFloat(Double.pi)) {
-      boundedAngle -= 2 * CGFloat(Double.pi)
+      // -= chnage couse we use anti clockwise
+      boundedAngle += 2 * CGFloat(Double.pi)
     }
 print( boundedAngle )
     // 3
@@ -140,7 +171,61 @@ print( boundedAngle )
       }
     }
   }
+ 
+ 
+  func kiasdhfs(setValue:Float) ->  Int  {
+    print(setValue*1000.0)
+    var nextv =  setValue
+    
+    if nextv > 7.9600 {
+      nextv = 7.96
+    }
+    print("nextv: \(nextv)")
+    
+    let loadingProcess = LoadingProcess(minValue: Int(startAngle*100.0), maxValue: Int(nextv*1000.0))
+      print(Int(4.5*100.0))
+    loadingProcess.simulateLoading(toValue: 80, valueChanged: { currentValue in
+      //self.setPointerAngle(CGFloat(currentValue), animated: false)\
+      print("Start init data")
+      print(currentValue)
+    })
+  var vale = 2
+    DispatchQueue.global(qos: .background).async {
+      print("Start loading data")
+      //sleep(5)
+      print("Data loaded")
+ 
+      loadingProcess.finish(valueChanged: { currentValue in
+        print(currentValue)
+        //
+        
+        self.value = min(self.maximumValue, max(self.minimumValue , Float(currentValue)))
+        
+       
+        var adfcda = Float(currentValue/100)
+        if adfcda > 7.9600 {
+          adfcda = 7.955
+        }
+        
+         print("nextv: \(adfcda)")
+        self.renderer.setPointerAngle(CGFloat(adfcda), animated: false)
+       // self.setValue(0.5)
+       
+        
+      }) { _ in
+        print("end")
+      }
+    }
+    return vale
+  }
+  
 }
+
+
+
+//class end
+
+
 
 private class KnobRenderer {
   var color: UIColor = .red {
@@ -239,18 +324,23 @@ private class KnobRenderer {
     
     
     //realPointerLayer.strokeColor = UIColor.red.cgColor
-
+    
     if animated {
     //  let midAngleValue = (max(newPointerAngle, pointerAngle) - min(newPointerAngle, pointerAngle)) / 2 + min(newPointerAngle, pointerAngle)
       
-      let midAngleValue = (max(changeVal, startAngle) - min(changeVal, endAngle)) / 2 + min(changeVal, startAngle)
-      print("junction points are: \(midAngleValue)")
-
-      let animation = CAKeyframeAnimation(keyPath: "transform.rotation.z")
-      animation.values = [startAngle, startAngle,startAngle]
-      animation.keyTimes = [0.0, 1.0, 2.0]
-      animation.timingFunctions = [CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)]
-      pointerLayer.add(animation, forKey: nil)
+      
+      //sample()
+      
+      
+      
+//      let midAngleValue = (max(changeVal, startAngle) - min(changeVal, endAngle)) / 2 + min(changeVal, startAngle)
+//      print("junction points are: \(midAngleValue)")
+//
+//      let animation = CAKeyframeAnimation(keyPath: "transform.rotation.z")
+//      animation.values = [startAngle, startAngle,startAngle]
+//      animation.keyTimes = [0.0, 1.0, 2.0]
+//      animation.timingFunctions = [CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)]
+//      pointerLayer.add(animation, forKey: nil)
       
       
       
@@ -261,6 +351,9 @@ private class KnobRenderer {
 
     pointerAngle = newPointerAngle
   }
+  
+  
+  
 
   let trackLayer = CALayer()
   
@@ -274,6 +367,32 @@ private class KnobRenderer {
     pointerLayer.fillColor = UIColor.clear.cgColor
     realPointerLayer.contents = UIImage(named: "dot")?.cgImage
     
+  }
+  
+  func animateValue(endVal:CGFloat){
+  
+    let loadingProcess = LoadingProcess(minValue: Int(startAngle*100.0), maxValue: Int(endVal*100.0))
+    
+    loadingProcess.simulateLoading(toValue: 80, valueChanged: { currentValue in
+      //self.setPointerAngle(CGFloat(currentValue), animated: false)\
+      print("Start init data")
+      print(currentValue)
+    })
+    
+    DispatchQueue.global(qos: .background).async {
+      print("Start loading data")
+      sleep(5)
+      print("Data loaded")
+      loadingProcess.finish(valueChanged: { currentValue in
+        print(currentValue)
+        //
+        
+        self.setPointerAngle(CGFloat(currentValue/100), animated: false)
+      }) { _ in
+        print("end")
+      }
+    
+  }
   }
 
   private func updateTrackLayerPath() {
@@ -347,10 +466,21 @@ private class RotationGestureRecognizer: UIPanGestureRecognizer {
     }
     let touchPoint = touch.location(in: view)
     touchAngle = angle(for: touchPoint, in: view)
+    
+      print("touchAngle: \(touchAngle)")
   }
 
   private func angle(for point: CGPoint, in view: UIView) -> CGFloat {
     let centerOffset = CGPoint(x: point.x - view.bounds.midX, y: point.y - view.bounds.midY)
+    
+ 
+    
+    print("point.x: \(point.x)")
+      print("view.bounds.midX: \(view.bounds.midX)")
+     print(" point.y: \( point.y)")
+         print(" view.bounds.midY: \( view.bounds.midY)")
+    
+    
     return atan2(centerOffset.y, centerOffset.x)
   }
 
@@ -361,3 +491,61 @@ private class RotationGestureRecognizer: UIPanGestureRecognizer {
     minimumNumberOfTouches = 1
   }
 }
+
+
+
+
+
+
+
+class LoadingProcess {
+  
+  let minValue: Int
+  let maxValue: Int
+  var currentValue: Int
+  
+  private let progressQueue = DispatchQueue(label: "ProgressView")
+  private let semaphore = DispatchSemaphore(value: 1)
+  
+  init (minValue: Int, maxValue: Int) {
+    self.minValue = minValue
+    self.currentValue = minValue
+    self.maxValue = maxValue
+  }
+  
+  private func delay(stepDelayUsec: useconds_t, completion: @escaping ()->()) {
+    usleep(stepDelayUsec)
+    DispatchQueue.main.async {
+      completion()
+    }
+  }
+  
+  func simulateLoading(toValue: Int, step: Int = 1, stepDelayUsec: useconds_t? = 10_000,
+                       valueChanged: @escaping (_ currentValue: Int)->(),
+                       completion: ((_ currentValue: Int)->())? = nil) {
+    
+    semaphore.wait()
+    progressQueue.sync {
+      if currentValue <= toValue && currentValue <= maxValue {
+        usleep(stepDelayUsec!)
+        DispatchQueue.main.async {
+          valueChanged(self.currentValue)
+          self.currentValue += step
+          self.semaphore.signal()
+          self.simulateLoading(toValue: toValue, step: step, stepDelayUsec: stepDelayUsec, valueChanged: valueChanged, completion: completion)
+        }
+        
+      } else {
+        self.semaphore.signal()
+        completion?(currentValue)
+      }
+    }
+  }
+  
+  func finish(step: Int = 1, stepDelayUsec: useconds_t? = 10_0,
+              valueChanged: @escaping (_ currentValue: Int)->(),
+              completion: ((_ currentValue: Int)->())? = nil) {
+    simulateLoading(toValue: maxValue, step: step, stepDelayUsec: stepDelayUsec, valueChanged: valueChanged, completion: completion)
+  }
+}
+

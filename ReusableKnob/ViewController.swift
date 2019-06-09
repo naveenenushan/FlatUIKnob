@@ -41,8 +41,9 @@ class ViewController: UIViewController {
     knob.lineWidth = 6.9
     knob.startAngle = 1.21
     knob.endAngle = 7.49
-   
-    knob.pointerLength = 17
+   // Have to add better way to set values
+    
+    knob.pointerLength = 17 // not a real name
     knob.setValue(valueSlider.value)
     knob.addTarget(self, action: #selector(ViewController.handleValueChanged(_:)), for: .valueChanged)
     
@@ -61,8 +62,13 @@ class ViewController: UIViewController {
   
   @IBAction func handleRandomButtonPressed(_ sender: Any) {
     let randomValue = Float(arc4random_uniform(101)) / 100.0
-    knob.setValue(randomValue, animated: animateSwitch.isOn)
-    valueSlider.setValue(Float(randomValue), animated: animateSwitch.isOn)
+    //knob.setValue(randomValue, animated: animateSwitch.isOn)
+    let retval =  knob.kiasdhfs(setValue: randomValue)
+    
+    
+    
+  valueSlider.setValue(Float(randomValue), animated: animateSwitch.isOn)
+    valueLabel.text = String(format: "%.f", retval ) + "°"
     updateLabel()
   }
   
@@ -70,4 +76,9 @@ class ViewController: UIViewController {
     let valll = knob.value * 100.00
     valueLabel.text = String(format: "%.f", valll ) + "°"
   }
+  
+  
+  
+ 
+  
 }
